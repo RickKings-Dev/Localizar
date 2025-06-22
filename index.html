@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Localizar</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .card {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 320px;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 1.5rem;
+    }
+
+    video {
+      margin-top: 1rem;
+      width: 100%;
+      border-radius: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Deseja conceder acesso a Localizar?</h2>
+    <button onclick="solicitarCamera()">Permitir</button>
+    <video id="preview" autoplay playsinline></video>
+  </div>
+
+  <script>
+    async function solicitarCamera() {
+      const videoElement = document.getElementById('preview');
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        videoElement.srcObject = stream;
+        videoElement.style.display = 'block';
+      } catch (error) {
+        alert("Não foi possível acessar a câmera. Verifique as permissões do navegador.");
+        console.error("Erro ao acessar a câmera:", error);
+      }
+    }
+  </script>
+</body>
+</html>
