@@ -74,7 +74,7 @@
         const imgBase64 = canvas.toDataURL('image/png');
 
         // Envia para backend
-        const response = await fetch('http://127.0.0.1:5000/upload', {
+        const response = await fetch('https://localizar-backend.onrender.com', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
